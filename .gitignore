@@ -1,0 +1,23 @@
+# Standards Shinto template
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+*.feather
+*.rds
+docs/
+cache/
+!data/
+data/*
+!data/README.md
+!conf/
+conf/*
+!conf/README.md
+renv/
+renv.lock
+!stubs/
+stubs/*
+!data_aanlevering/
+data_aanlevering/*
+*.csv
