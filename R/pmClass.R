@@ -30,8 +30,8 @@ pmClass <- R6::R6Class(
                             activity_instance = "activity_id_instance",
                             eventtime = "eventtime",
                             lifecycle = "lifecycle_id",
-                            resource = "resource"
-                          ),){
+                            resource = "resource")
+    ){
 
       self$connect_to_database(config_file, schema, what, pool, sqlite)
 
@@ -283,17 +283,6 @@ pmClass <- R6::R6Class(
     },
 
 
-    #' @description Get (recoded) choices for a select field
-    get_field_choices = function(column_field){
-
-      self$read_definition(lazy = TRUE) %>%
-        filter(!!sym(self$def$column_field) == !!column_field) %>%
-        pull(!!sym(self$def$options)) %>%
-        self$from_json()
-
-    },
-
-
     #' @description Make choices (for selectInput) based on values and names
     make_choices = function(values_from, names_from = values_from, data = NULL, sort = TRUE){
 
@@ -389,7 +378,7 @@ pmClass <- R6::R6Class(
 
     },
 
-    delete_event = function(case_id){
+    delete_events_from_case = function(case_id){
       if(!is.null(self$schema)){
         qu <- glue::glue("DELETE FROM {self$schema}.{self$event_data} WHERE {self$event_columns$case} = '{case_id}'")
       } else {
@@ -410,7 +399,9 @@ pmClass <- R6::R6Class(
                       resource_id = self$event_columns$resource)
     },
 
-    get_eventdata_registration = function(id, column){ # TEST OF DIT NOG WERKT!!!
+    get_eventdata_case = function(id, column, option_json){
+
+
 
       data <- self$read_table(self$event_data, lazy = TRUE) %>%
         filter(!!sym(self$event_columns$case) == !!id) %>%
@@ -418,19 +409,32 @@ pmClass <- R6::R6Class(
 
       event_data <- self$make_event_data(data)
 
-      phases <- unlist(self$get_field_choices(column))
-      phases <- data.frame(number = names(phases), phase = phases)
 
-      firstname <- self$event_columns$activity
-      join_cols = c("number")
-      names(join_cols) <- firstname
+      if(is.null(option_json)){
 
-      event_data <- left_join(event_data, phases, by = join_cols)
+        event_data <- event_data %>%
+          replace_na(list(activity_id = "Niet ingevuld"))
 
-      event_data <- event_data %>%
-        mutate(activity_id = phase) %>%
-        select(-c("phase")) %>%
-        replace_na(list(activity_id = "Niet ingevuld"))
+      } else {
+        phases <- unlist(option_json)
+        phases <- data.frame(number = names(phases), phase = phases)
+
+        firstname <- self$event_columns$activity
+        join_cols = c("number")
+        names(join_cols) <- firstname
+
+        event_data <- left_join(event_data, phases, by = join_cols)
+
+        event_data <- event_data %>%
+          mutate(activity_id = phase) %>%
+          select(-c("phase")) %>%
+          replace_na(list(activity_id = "Niet ingevuld"))
+      }
+
+
+    },
+
+    get_auditdata_case = function(id, column, option_json){
 
     }
 
