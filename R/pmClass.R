@@ -399,16 +399,18 @@ pmClass <- R6::R6Class(
                       resource_id = self$event_columns$resource)
     },
 
-    get_eventdata_case = function(id, column, option_json){
+    get_eventlog_case = function(audit_data, case_id, column, option_json){
+      browser()
 
+      if(is.null(audit_data)){
+        data <- self$read_table(self$event_data, lazy = TRUE) %>%
+          filter(!!sym(self$event_columns$case) == !!case_id) %>%
+          collect
 
-
-      data <- self$read_table(self$event_data, lazy = TRUE) %>%
-        filter(!!sym(self$event_columns$case) == !!id) %>%
-        collect
-
-      event_data <- self$make_event_data(data)
-
+        event_data <- self$make_event_data(data)
+      } else {
+        print("To be implemented")
+      }
 
       if(is.null(option_json)){
 
@@ -431,10 +433,6 @@ pmClass <- R6::R6Class(
           replace_na(list(activity_id = "Niet ingevuld"))
       }
 
-
-    },
-
-    get_auditdata_case = function(id, column, option_json){
 
     }
 

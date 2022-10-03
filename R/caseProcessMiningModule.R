@@ -18,26 +18,21 @@ caseProcessMiningUI <- function(id){
 
 #' @export
 #' @param .pm pmClass for which the process mining is being done
+#' @param audit_data dataset from audit functionality from shintoforms. If not provided using the standard event_data from a database
 #' @param case_id case about we want to see event traces and process mining analyses
 #' @param column the column which contains the states
 #' @param option_json optional JSON so readable labels are plotted
-#' @param from_audit Boolean to indicate if eventdata or auditdata should be used
 #' @rdname caseProcessMiningModule
-caseProcessMiningModule <- function(input, output, session, .pm, case_id = reactive(NULL), column, option_json = reactive(NULL),
-                                    from_audit = TRUE){
+caseProcessMiningModule <- function(input, output, session, .pm, audit_data = reactive(NULL), case_id = reactive(NULL),
+                                    column = NULL, option_json = reactive(NULL)){
 
-  event_data <- reactive({
-    if(from_audit){
-      browser()
-      .pm$get_auditdata_case(case_id(), column, option_json())
-    } else {
-      .pm$get_eventdata_case(case_id(), column, option_json())
-    }
+  event_log <- reactive({
+    .pm$get_eventlog_case(audit_data, case_id(), column, option_json())
   })
 
   output$trace_case_id <- renderUI({
 
-    event_data <- event_data()
+    event_log <- event_log()
 
     softui::fluid_row(
       column(12,
@@ -72,26 +67,26 @@ caseProcessMiningModule <- function(input, output, session, .pm, case_id = react
 
   output$trace_explorer_plot <- renderPlot({
 
-    event_data() %>% processmapR::trace_explorer() %>% plot()
+    event_log() %>% processmapR::trace_explorer() %>% plot()
 
   })
 
   output$process_map_plot <- DiagrammeR::renderGrViz({
 
-    event_data() %>% processmapR::process_map(render = TRUE)
+    event_log() %>% processmapR::process_map(render = TRUE)
 
   })
 
 
   output$process_matrix_plot <- renderPlot({
 
-    event_data() %>% processmapR::precedence_matrix() %>% plot()
+    event_log() %>% processmapR::precedence_matrix() %>% plot()
 
   })
 
   output$resource_map_plot <- DiagrammeR::renderGrViz({
 
-    event_data() %>% processmapR::resource_map()
+    event_log() %>% processmapR::resource_map()
 
   })
 

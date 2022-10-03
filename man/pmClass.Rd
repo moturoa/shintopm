@@ -28,8 +28,7 @@ R6 Class voor Process Mining applicaties
 \item \href{#method-NA-add_event}{\code{pmClass$add_event()}}
 \item \href{#method-NA-delete_events_from_case}{\code{pmClass$delete_events_from_case()}}
 \item \href{#method-NA-make_event_data}{\code{pmClass$make_event_data()}}
-\item \href{#method-NA-get_eventdata_case}{\code{pmClass$get_eventdata_case()}}
-\item \href{#method-NA-get_auditdata_case}{\code{pmClass$get_auditdata_case()}}
+\item \href{#method-NA-get_eventlog_case}{\code{pmClass$get_eventlog_case()}}
 \item \href{#method-unknown-clone}{\code{pmClass$clone()}}
 }
 }
@@ -253,20 +252,11 @@ Unpack a JSON field to make a named vector
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-NA-get_eventdata_case"></a>}}
-\if{latex}{\out{\hypertarget{method-NA-get_eventdata_case}{}}}
-\subsection{Method \code{get_eventdata_case()}}{
+\if{html}{\out{<a id="method-NA-get_eventlog_case"></a>}}
+\if{latex}{\out{\hypertarget{method-NA-get_eventlog_case}{}}}
+\subsection{Method \code{get_eventlog_case()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{pmClass$get_eventdata_case(id, column, option_json)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-NA-get_auditdata_case"></a>}}
-\if{latex}{\out{\hypertarget{method-NA-get_auditdata_case}{}}}
-\subsection{Method \code{get_auditdata_case()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{pmClass$get_auditdata_case(id, column, option_json)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{pmClass$get_eventlog_case(audit_data, case_id, column, option_json)}\if{html}{\out{</div>}}
 }
 
 }

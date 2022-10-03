@@ -12,16 +12,18 @@ caseProcessMiningModule(
   output,
   session,
   .pm,
+  audit_data = reactive(NULL),
   case_id = reactive(NULL),
-  column,
-  option_json = reactive(NULL),
-  from_audit = TRUE
+  column = NULL,
+  option_json = reactive(NULL)
 )
 }
 \arguments{
 \item{id}{Shiny input id}
 
 \item{.pm}{pmClass for which the process mining is being done}
+
+\item{audit_data}{dataset from audit functionality from shintoforms. If not provided using the standard event_data from a database}
 
 \item{case_id}{case about we want to see event traces and process mining analyses}
 
