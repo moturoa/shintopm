@@ -45,6 +45,7 @@ Make new process mining application object.
   pool = TRUE,
   sqlite = NULL,
   form_data = NULL,
+  form_data_id = NULL,
   form_audit = NULL,
   event_data = NULL,
   event_columns = list(case = "case_id", activity = "activity_id", activity_instance =
@@ -247,7 +248,15 @@ Unpack a JSON field to make a named vector
 \if{latex}{\out{\hypertarget{method-NA-make_event_data}{}}}
 \subsection{Method \code{make_event_data()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{pmClass$make_event_data(data)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{pmClass$make_event_data(
+  data,
+  cid = self$event_columns$case,
+  aid = self$event_columns$activity,
+  aiid = self$event_columns$activity_instance,
+  tmst = self$event_columns$eventtime,
+  lcid = self$event_columns$lifecycle,
+  rid = self$event_columns$resource
+)}\if{html}{\out{</div>}}
 }
 
 }

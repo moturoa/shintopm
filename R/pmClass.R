@@ -22,7 +22,8 @@ pmClass <- R6::R6Class(
                           pool = TRUE,
                           sqlite = NULL,
                           form_data = NULL,
-                          form_audit = NULL,
+                          form_data_id = NULL,
+                          form_audit = NULL, # NIET OVERBODIG; Iets maken dat je ook algemeen vanuit hier kan maken zonder preprocessed form_audits mee te geven.
                           event_data = NULL,
                           event_columns = list(
                             case = "case_id",
@@ -34,6 +35,9 @@ pmClass <- R6::R6Class(
     ){
 
       self$connect_to_database(config_file, schema, what, pool, sqlite)
+
+      self$form_data <- form_data
+      self$form_data_id <- form_data_id
 
 
       self$event_data <- event_data
@@ -389,48 +393,93 @@ pmClass <- R6::R6Class(
     },
 
 
-    make_event_data = function(data){
+    make_event_data = function(data, cid = self$event_columns$case, aid = self$event_columns$activity, aiid = self$event_columns$activity_instance,
+                               tmst = self$event_columns$eventtime, lcid = self$event_columns$lifecycle, rid = self$event_columns$resource){
       bupaR::eventlog(data,
-                      case_id = self$event_columns$case,
-                      activity_id = self$event_columns$activity,
-                      activity_instance_id = self$event_columns$activity_instance,
-                      timestamp = self$event_columns$eventtime,
-                      lifecycle_id = self$event_columns$lifecycle,
-                      resource_id = self$event_columns$resource)
+                      case_id = cid,
+                      activity_id = aid,
+                      activity_instance_id = aiid,
+                      timestamp = tmst,
+                      lifecycle_id = lcid,
+                      resource_id = rid)
     },
 
     get_eventlog_case = function(audit_data, case_id, column, option_json){
-      browser()
 
-      if(is.null(audit_data)){
+      # TODO: CAN WE USE NEW_VAL? OR SHOULD IT BE GENERIC?
+
+      if(!is.null(audit_data)){
+        event_data <- audit_data %>%
+          filter(registration_id == !!case_id) %>%
+          filter(variable == !!column | type == "C")
+
+        event_data$aiid <- replicate(nrow(event_data), uuid::UUIDgenerate())
+
+        # The creation event is not filled in yet. For this we have to fill in the table so a complete eventlog can be created.
+        # There are four cases;
+        # - a registration has been made and the aspect which is being mined is not filled in
+        # - a registration has been made and the aspect which is being mined was not filled in initially but has been now
+        # - a registration has been made and the aspect which is being mined has been filled in but has not changed
+        # - a registration has been made and the aspect which is being mined has been filled in and has been changed
+        # The first en second case is being handled by the NA-replaces down the line.
+        # The third case is a case where only the creation row is present; the creation row does not have any filled in variables.
+        # Hence, in this case we should fetch this from the self$formdata
+
+        browser()
+        if(nrow(event_data) == 1 && event_data$type == "C"){
+          current_reg_act <- self$read_table(self$form_data, lazy = TRUE) %>%
+            filter(!!sym(self$form_data_id) == case_id) %>%
+            collect() %>%
+            select(!!sym(column)) %>%
+            pull(!!sym(column))
+
+          if(current_reg_act == ""){
+            current_reg_act <- NA
+          }
+
+          event_data$new_val <- current_reg_act
+        } else if(nrow(event_data) > 1){
+          # If this is the case the fourth case applies. We should get the  old value' from the first U event and put it in the 'new value' of the C event.
+        }
+
+
+        event_data <- self$make_event_data(event_data, cid = "registration_id", aid = "new_val", aiid = "aiid",
+                                           tmst = "time_modified", lcid = "new_val", rid = "user_id")
+
+        activity_column <- "new_val"
+
+      } else if(!is.null(self$event_data)) {
         data <- self$read_table(self$event_data, lazy = TRUE) %>%
           filter(!!sym(self$event_columns$case) == !!case_id) %>%
           collect
 
         event_data <- self$make_event_data(data)
+
+        activity_column <- self$event_columns$activity
+
       } else {
-        print("To be implemented")
+        stop("No audit data has been provided in the function call while no event_data table has been defined")
       }
 
       if(is.null(option_json)){
 
         event_data <- event_data %>%
-          replace_na(list(activity_id = "Niet ingevuld"))
+          dplyr::mutate(!!activity_column := tidyr::replace_na(!!rlang::sym(activity_column), "Niet ingevuld"))
 
       } else {
         phases <- unlist(option_json)
         phases <- data.frame(number = names(phases), phase = phases)
 
-        firstname <- self$event_columns$activity
+        firstname <- activity_column
         join_cols = c("number")
         names(join_cols) <- firstname
 
         event_data <- left_join(event_data, phases, by = join_cols)
 
         event_data <- event_data %>%
-          mutate(activity_id = phase) %>%
-          select(-c("phase")) %>%
-          replace_na(list(activity_id = "Niet ingevuld"))
+          dplyr::mutate(!!rlang::sym(activity_column) := phase) %>%
+          dplyr::select(-c("phase")) %>%
+          dplyr::mutate(!!activity_column := tidyr::replace_na(!!rlang::sym(activity_column), "Niet ingevuld"))
       }
 
 

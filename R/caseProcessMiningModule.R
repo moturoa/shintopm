@@ -27,12 +27,14 @@ caseProcessMiningModule <- function(input, output, session, .pm, audit_data = re
                                     column = NULL, option_json = reactive(NULL)){
 
   event_log <- reactive({
-    .pm$get_eventlog_case(audit_data, case_id(), column, option_json())
+    .pm$get_eventlog_case(audit_data(), case_id(), column, option_json())
   })
 
   output$trace_case_id <- renderUI({
 
     event_log <- event_log()
+
+    req(event_log)
 
     softui::fluid_row(
       column(12,
