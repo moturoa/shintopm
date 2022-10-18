@@ -7,7 +7,15 @@
 \usage{
 processMiningUI(id)
 
-processMiningModule(input, output, session, .reg)
+processMiningModule(
+  input,
+  output,
+  session,
+  .pm,
+  audit_data = reactive(NULL),
+  column = NULL,
+  option_json = reactive(NULL)
+)
 }
 \arguments{
 \item{id}{Shiny input id}

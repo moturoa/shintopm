@@ -425,7 +425,7 @@ pmClass <- R6::R6Class(
         # The third case is a case where only the creation row is present; the creation row does not have any filled in variables.
         # Hence, in this case we should fetch this from the self$formdata
 
-        browser()
+
         if(nrow(event_data) == 1 && event_data$type == "C"){
           current_reg_act <- self$read_table(self$form_data, lazy = TRUE) %>%
             filter(!!sym(self$form_data_id) == case_id) %>%
@@ -440,6 +440,18 @@ pmClass <- R6::R6Class(
           event_data$new_val <- current_reg_act
         } else if(nrow(event_data) > 1){
           # If this is the case the fourth case applies. We should get the  old value' from the first U event and put it in the 'new value' of the C event.
+          u_events <- event_data %>%
+            filter(type == "U") %>%
+            arrange(time_modified)
+
+          first_value <- u_events$old_val[1]
+
+          if(first_value == ""){
+            first_value <- NA
+          }
+
+          event_data[event_data$type == "C",]$new_val <- first_value
+
         }
 
 

@@ -60,6 +60,20 @@ caseProcessMiningModule <- function(input, output, session, .pm, audit_data = re
                                   tags$h3("Overdracht-matrix"),
                                   plotOutput(session$ns("process_matrix_plot"))
                            )
+                         ),
+                         softui::fluid_row(
+                           column(6,
+                                  tags$h3("Doorlooptijd"),
+                                  uiOutput(session$ns("througput_time_ui"))
+
+                           ),
+                           column(6,
+                                  column(6,
+                                         tags$h3("Tijdskaart"),
+                                         DiagrammeR::grVizOutput(session$ns("process_time_plot"), width = "200%", height = "200px")
+
+                                  )
+                           )
                          )
              )
       )
@@ -89,6 +103,20 @@ caseProcessMiningModule <- function(input, output, session, .pm, audit_data = re
   output$resource_map_plot <- DiagrammeR::renderGrViz({
 
     event_log() %>% processmapR::resource_map()
+
+  })
+
+  output$througput_time_ui <- renderUI({
+    td <- event_log() %>% edeaR::throughput_time(level = "case", units = "hours")
+
+    softui::value_box(round(td$throughput_time, 1), title = "Doorlooptijd", icon = bsicon("hourglass-split"), width = "100%")
+
+  })
+
+  output$process_time_plot <- DiagrammeR::renderGrViz({
+
+    event_log() %>% processmapR::process_map(render = TRUE, processmapR::performance(mean, "hours"))
+
 
   })
 
