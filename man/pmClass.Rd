@@ -29,6 +29,8 @@ R6 Class voor Process Mining applicaties
 \item \href{#method-NA-delete_events_from_case}{\code{pmClass$delete_events_from_case()}}
 \item \href{#method-NA-make_event_data}{\code{pmClass$make_event_data()}}
 \item \href{#method-NA-get_eventlog_case}{\code{pmClass$get_eventlog_case()}}
+\item \href{#method-NA-make_complete_log}{\code{pmClass$make_complete_log()}}
+\item \href{#method-NA-get_first_value_before_edits}{\code{pmClass$get_first_value_before_edits()}}
 \item \href{#method-unknown-clone}{\code{pmClass$clone()}}
 }
 }
@@ -47,6 +49,7 @@ Make new process mining application object.
   form_data = NULL,
   form_data_id = NULL,
   form_audit = NULL,
+  form_audit_id = NULL,
   event_data = NULL,
   event_columns = list(case = "case_id", activity = "activity_id", activity_instance =
     "activity_id_instance", eventtime = "eventtime", lifecycle = "lifecycle_id", resource
@@ -266,6 +269,24 @@ Unpack a JSON field to make a named vector
 \subsection{Method \code{get_eventlog_case()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{pmClass$get_eventlog_case(audit_data, case_id, column, option_json)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-NA-make_complete_log"></a>}}
+\if{latex}{\out{\hypertarget{method-NA-make_complete_log}{}}}
+\subsection{Method \code{make_complete_log()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{pmClass$make_complete_log(audit_data, column, option_json)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-NA-get_first_value_before_edits"></a>}}
+\if{latex}{\out{\hypertarget{method-NA-get_first_value_before_edits}{}}}
+\subsection{Method \code{get_first_value_before_edits()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{pmClass$get_first_value_before_edits(data)}\if{html}{\out{</div>}}
 }
 
 }

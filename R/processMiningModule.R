@@ -7,12 +7,32 @@ processMiningUI <- function(id){
 
   ns <- NS(id)
 
-  softui::fluid_row(
-    column(12,
-           plotOutput(ns("animated_process"))
-    )
-  )
+  softui::fluid_page(
+    softui::fluid_row(
+      column(12,
+             shiny::sliderInput(ns("slide_freq_pm"), label = "Trace frequency", min = 0, max = 1, step = 0.01, value = 1),
+      )
+    ),
+    softui::fluid_row(
+      column(6,
+             tags$h3("Stappenkaart"),
+             DiagrammeR::grVizOutput(ns("process_map_plot"))
+      ),
+      column(6,
+             tags$h3("Overdracht-matrix"),
+             plotOutput(ns("process_matrix_plot"))
 
+      )
+    ),
+    tags$br(),
+    softui::fluid_row(
+      column(12,
+             tags$h3("Tijdslijn"),
+             processanimateR::processanimaterOutput(ns("animated_process"))
+      )
+    )
+
+  )
 
 }
 
@@ -22,13 +42,27 @@ processMiningUI <- function(id){
 processMiningModule <- function(input, output, session, .pm, audit_data = reactive(NULL), column = NULL, option_json = reactive(NULL)){
 
   event_log <- reactive({
-    .pm$make_event_data(audit_data(), cid = "registration_id", aid = "new_val", aiid = "aiid",
-                        tmst = "time_modified", lcid = "new_val", rid = "user_id")
+    .pm$make_complete_log(audit_data(), column, option_json())
   })
 
-  output$animated_process <- renderPlot({
-    req(event_log)
-    event_log() %>% processanimateR::animate_process() %>% plot()
+  output$animated_process <- processanimateR::renderProcessanimater({
+    req(event_log())
+
+    graph <- processmapR::process_map(event_log(), render = F)
+    model <- DiagrammeR::add_global_graph_attrs(graph, attr = "rankdir", value = "true", attr_type = "graph")
+    event_log() %>% processanimateR::animate_process(processmap = model)
+
+  })
+
+  output$process_map_plot <- DiagrammeR::renderGrViz({
+
+    event_log() %>% edeaR::filter_trace_frequency(percentage = input$slide_freq_pm) %>% processmapR::process_map(render = TRUE)
+
+  })
+
+  output$process_matrix_plot <- renderPlot({
+
+    event_log() %>% edeaR::filter_trace_frequency(percentage = input$slide_freq_pm) %>% processmapR::precedence_matrix() %>% plot()
 
   })
 

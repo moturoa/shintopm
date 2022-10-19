@@ -24,6 +24,7 @@ pmClass <- R6::R6Class(
                           form_data = NULL,
                           form_data_id = NULL,
                           form_audit = NULL, # NIET OVERBODIG; Iets maken dat je ook algemeen vanuit hier kan maken zonder preprocessed form_audits mee te geven.
+                          form_audit_id = NULL,
                           event_data = NULL,
                           event_columns = list(
                             case = "case_id",
@@ -38,6 +39,8 @@ pmClass <- R6::R6Class(
 
       self$form_data <- form_data
       self$form_data_id <- form_data_id
+
+      self$form_audit_id <- form_audit_id
 
 
       self$event_data <- event_data
@@ -406,7 +409,11 @@ pmClass <- R6::R6Class(
 
     get_eventlog_case = function(audit_data, case_id, column, option_json){
 
-      # TODO: CAN WE USE NEW_VAL? OR SHOULD IT BE GENERIC?
+      # TODO: CAN WE USE NEW_VAL? OR SHOULD IT BE GENERIC? --> type, time, etc. allemaal algemene kolommen maken
+
+      if(is.null(column)){
+        stop("A column MUST be defined in order to execute process mining")
+      }
 
       if(!is.null(audit_data)){
         event_data <- audit_data %>%
@@ -440,6 +447,8 @@ pmClass <- R6::R6Class(
           event_data$new_val <- current_reg_act
         } else if(nrow(event_data) > 1){
           # If this is the case the fourth case applies. We should get the  old value' from the first U event and put it in the 'new value' of the C event.
+
+          # TODO --> Dit is nu functie, aanpassen? get_first_value_before_edits
           u_events <- event_data %>%
             filter(type == "U") %>%
             arrange(time_modified)
@@ -453,7 +462,6 @@ pmClass <- R6::R6Class(
           event_data[event_data$type == "C",]$new_val <- first_value
 
         }
-
 
         event_data <- self$make_event_data(event_data, cid = "registration_id", aid = "new_val", aiid = "aiid",
                                            tmst = "time_modified", lcid = "new_val", rid = "user_id")
@@ -495,7 +503,112 @@ pmClass <- R6::R6Class(
       }
 
 
+    },
+
+
+    make_complete_log = function(audit_data, column, option_json){
+
+      # TODO: CAN WE USE NEW_VAL? OR SHOULD IT BE GENERIC?
+
+
+
+      if(is.null(column)){
+        stop("A column MUST be defined in order to execute process mining")
+      }
+
+      if(!is.null(audit_data)){
+        event_data <- audit_data %>%
+          filter(variable == !!column | type == "C")
+
+        # All registrations that only occur once have only current data, which must be retrieved from the registration table
+        one_occurrence <- event_data %>%
+          count(!!sym(self$form_audit_id)) %>%
+          filter(n == 1)
+
+        one_occ_reg <- self$read_table(self$form_data) %>%
+          filter(!!sym(self$form_data_id) %in% one_occurrence[[self$form_data_id]]) %>%
+          select(!!sym(self$form_data_id), !!sym(column))
+
+        event_data <- event_data %>%
+          left_join(one_occ_reg, by = setNames(self$form_audit_id, self$form_data_id)) %>%
+          mutate(new_val = coalesce(new_val, !!sym(column))) %>%
+          select(-!!sym(column)) %>%
+          mutate(new_val = na_if(new_val, ""))
+
+        # All registrations that have multiple occurrences should get the old_val from the first U-event as value in the new_val in the C-event
+        mult_occ_reg <- event_data %>%
+          filter(!(!!sym(self$form_audit_id) %in% one_occurrence[[self$form_data_id]]))
+
+        sapply(unique(mult_occ_reg$registration_id), function(x){
+
+          dt <- mult_occ_reg %>%
+            filter(!!sym(self$form_audit_id) == x)
+
+          res <- self$get_first_value_before_edits(dt)
+
+          event_data[event_data$type == "C" & event_data[[self$form_audit_id]] == x,]$new_val <<- res
+
+
+        })
+
+        event_data$aiid <- replicate(nrow(event_data), uuid::UUIDgenerate())
+
+        event_data <- self$make_event_data(event_data, cid = "registration_id", aid = "new_val", aiid = "aiid",
+                                           tmst = "time_modified", lcid = "new_val", rid = "user_id")
+
+        activity_column <- "new_val"
+
+
+      } else if(!is.null(self$event_data)) {
+
+
+      } else {
+        stop("No audit data has been provided in the function call while no event_data table has been defined")
+      }
+
+      # TODO: Hier zitten wat dubbele stukken code in tov get_eventlog_case(), kijk of je dit kan verbeteren
+
+      if(is.null(option_json)){
+
+        event_data <- event_data %>%
+          dplyr::mutate(!!activity_column := tidyr::replace_na(!!rlang::sym(activity_column), "Niet ingevuld"))
+
+      } else {
+        phases <- unlist(option_json)
+        phases <- data.frame(number = names(phases), phase = phases)
+
+        firstname <- activity_column
+        join_cols = c("number")
+        names(join_cols) <- firstname
+
+        event_data <- left_join(event_data, phases, by = join_cols)
+
+        event_data <- event_data %>%
+          dplyr::mutate(!!rlang::sym(activity_column) := phase) %>%
+          dplyr::select(-c("phase")) %>%
+          dplyr::mutate(!!activity_column := tidyr::replace_na(!!rlang::sym(activity_column), "Niet ingevuld"))
+      }
+
+
+
+    },
+
+    get_first_value_before_edits = function(data){
+
+      u_events <- data %>%
+        filter(type == "U") %>%
+        arrange(time_modified)
+
+      first_value <- u_events$old_val[1]
+
+      if(first_value == ""){
+        first_value <- NA
+      }
+
+      return(first_value)
+
     }
+
 
   )
 
