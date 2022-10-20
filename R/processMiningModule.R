@@ -5,30 +5,30 @@
 
 processMiningUI <- function(id){
 
-  ns <- NS(id)
+  ns <- shiny::NS(id)
 
   softui::fluid_page(
     softui::fluid_row(
-      column(12,
-             shiny::sliderInput(ns("slide_freq_pm"), label = "Trace frequency", min = 0, max = 1, step = 0.01, value = 1),
+      shiny::column(12,
+                    shiny::sliderInput(ns("slide_freq_pm"), label = "Trace frequency", min = 0, max = 1, step = 0.01, value = 1),
       )
     ),
     softui::fluid_row(
-      column(6,
-             tags$h3("Stappenkaart"),
+      shiny::column(6,
+             shiny::tags$h3("Stappenkaart"),
              DiagrammeR::grVizOutput(ns("process_map_plot"))
       ),
-      column(6,
-             tags$h3("Overdracht-matrix"),
-             plotOutput(ns("process_matrix_plot"))
+      shiny::column(6,
+             shiny::tags$h3("Overdracht-matrix"),
+             shiny::plotOutput(ns("process_matrix_plot"))
 
       )
     ),
-    tags$br(),
+    shiny::tags$br(),
     softui::fluid_row(
-      column(12,
-             tags$h3("Tijdslijn"),
-             processanimateR::processanimaterOutput(ns("animated_process"))
+      shiny::column(12,
+                    shiny::tags$h3("Tijdslijn"),
+                    processanimateR::processanimaterOutput(ns("animated_process"))
       )
     )
 
@@ -46,7 +46,7 @@ processMiningModule <- function(input, output, session, .pm, audit_data = reacti
   })
 
   output$animated_process <- processanimateR::renderProcessanimater({
-    req(event_log())
+    shiny::req(event_log())
 
     graph <- processmapR::process_map(event_log(), render = F)
     model <- DiagrammeR::add_global_graph_attrs(graph, attr = "rankdir", value = "true", attr_type = "graph")
@@ -60,7 +60,7 @@ processMiningModule <- function(input, output, session, .pm, audit_data = reacti
 
   })
 
-  output$process_matrix_plot <- renderPlot({
+  output$process_matrix_plot <- shiny::renderPlot({
 
     event_log() %>% edeaR::filter_trace_frequency(percentage = input$slide_freq_pm) %>% processmapR::precedence_matrix() %>% plot()
 

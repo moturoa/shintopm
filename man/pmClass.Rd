@@ -72,7 +72,11 @@ Make new process mining application object.
 
 \item{\code{form_data}}{If the user uses the shintoforms package this table is used to get the current state}
 
+\item{\code{form_data_id}}{Name of column that specifies the ids for cases/registrations in the form_data table}
+
 \item{\code{form_audit}}{If the user uses the shintoforms package this table is used to get the history}
+
+\item{\code{form_audit_id}}{Name of column that specifies the ids for cases/registrations in the audit_data table}
 
 \item{\code{event_data}}{If the user want to use their own event data}
 
@@ -96,6 +100,21 @@ Connect to a database
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{config_file}}{Path to DB config}
+
+\item{\code{schema}}{DB schema}
+
+\item{\code{what}}{Entry in config for DB connection}
+
+\item{\code{pool}}{If TRUE, connects with dbPool}
+
+\item{\code{sqlite}}{If path to an SQLite file, uses SQLite.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-NA-close"></a>}}
@@ -111,60 +130,123 @@ Close database connection
 \if{html}{\out{<a id="method-NA-make_column"></a>}}
 \if{latex}{\out{\hypertarget{method-NA-make_column}{}}}
 \subsection{Method \code{make_column()}}{
+Add a column to a table
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{pmClass$make_column(table, column, type = "varchar")}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{table}}{The table to which the column is added}
+
+\item{\code{column}}{the name of the column to be added}
+
+\item{\code{type}}{the type of the column to be added}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-NA-read_table"></a>}}
 \if{latex}{\out{\hypertarget{method-NA-read_table}{}}}
 \subsection{Method \code{read_table()}}{
+Function to read a complete table from a database
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{pmClass$read_table(table, lazy = FALSE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{table}}{The table which must be retrieved}
+
+\item{\code{lazy}}{Boolean whether the entire table must retrieved or whether is should be done lazily}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-NA-append_data"></a>}}
 \if{latex}{\out{\hypertarget{method-NA-append_data}{}}}
 \subsection{Method \code{append_data()}}{
+Function to add data to a table
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{pmClass$append_data(table, data)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{table}}{The table to which the data must be added}
+
+\item{\code{data}}{data to be added to the data in the table}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-NA-table_columns"></a>}}
 \if{latex}{\out{\hypertarget{method-NA-table_columns}{}}}
 \subsection{Method \code{table_columns()}}{
+Get the column names from a table
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{pmClass$table_columns(table)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{table}}{The table from which the names must be retrieved}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-NA-query"></a>}}
 \if{latex}{\out{\hypertarget{method-NA-query}{}}}
 \subsection{Method \code{query()}}{
+Function to execute a query
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{pmClass$query(txt, glue = TRUE, quiet = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{pmClass$query(txt, glue = TRUE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{txt}}{The text containing the query}
+
+\item{\code{glue}}{Boolean to indicate whether the text contains glue statements}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-NA-has_value"></a>}}
 \if{latex}{\out{\hypertarget{method-NA-has_value}{}}}
 \subsection{Method \code{has_value()}}{
+Checks whether a value occurs in a column
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{pmClass$has_value(table, column, value)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{table}}{The table which should be checked}
+
+\item{\code{column}}{The column that should be checked}
+
+\item{\code{value}}{The value which should be checked for}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-NA-replace_value_where"></a>}}
 \if{latex}{\out{\hypertarget{method-NA-replace_value_where}{}}}
 \subsection{Method \code{replace_value_where()}}{
+Function to dynamically replace values
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{pmClass$replace_value_where(
   table,
@@ -172,11 +254,27 @@ Close database connection
   val_replace,
   col_compare,
   val_compare,
-  query_only = FALSE,
-  quiet = FALSE
+  query_only = FALSE
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{table}}{The table in which values should be replaced}
+
+\item{\code{col_replace}}{The column that should be replaced}
+
+\item{\code{val_replace}}{The value that should be replaced}
+
+\item{\code{col_compare}}{The column to compare to}
+
+\item{\code{val_compare}}{The value to compare to}
+
+\item{\code{query_only}}{Boolean indicating if the query should be returned. FALSE means it is also executed}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-NA-make_choices"></a>}}
@@ -192,6 +290,19 @@ Make choices (for selectInput) based on values and names
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{values_from}}{Column to specify where the values must come from}
+
+\item{\code{names_from}}{Column to specify where the names must come from}
+
+\item{\code{data}}{The dataset from which the values and names come}
+
+\item{\code{sort}}{Boolean indicating if the options must be sorted}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-NA-choices_from_json"></a>}}
@@ -202,29 +313,57 @@ Unpack a JSON field to make a named vector
 \if{html}{\out{<div class="r">}}\preformatted{pmClass$choices_from_json(x)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{x}}{the json field}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-NA-from_json"></a>}}
 \if{latex}{\out{\hypertarget{method-NA-from_json}{}}}
 \subsection{Method \code{from_json()}}{
+Unpack a JSON field to make a named vector
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{pmClass$from_json(x, ...)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{x}}{the json field}
+
+\item{\code{...}}{other arguments}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-NA-to_json"></a>}}
 \if{latex}{\out{\hypertarget{method-NA-to_json}{}}}
 \subsection{Method \code{to_json()}}{
+Form a named vector into a JSON field
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{pmClass$to_json(x, ...)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{x}}{the named vector}
+
+\item{\code{...}}{other arguments}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-NA-add_event"></a>}}
 \if{latex}{\out{\hypertarget{method-NA-add_event}{}}}
 \subsection{Method \code{add_event()}}{
+Add an event to the event_data
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{pmClass$add_event(
   case_id,
@@ -236,20 +375,46 @@ Unpack a JSON field to make a named vector
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{case_id}}{ID for the case}
+
+\item{\code{activity}}{Activity of the event}
+
+\item{\code{resource}}{Resource of event, who performed the activity}
+
+\item{\code{act_ins}}{Optional instance of the activity}
+
+\item{\code{e_time}}{Time of the event}
+
+\item{\code{lc}}{Lifecycle phase}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-NA-delete_events_from_case"></a>}}
 \if{latex}{\out{\hypertarget{method-NA-delete_events_from_case}{}}}
 \subsection{Method \code{delete_events_from_case()}}{
+Delete an event from the event_data
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{pmClass$delete_events_from_case(case_id)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{case_id}}{ID for the case}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-NA-make_event_data"></a>}}
 \if{latex}{\out{\hypertarget{method-NA-make_event_data}{}}}
 \subsection{Method \code{make_event_data()}}{
+Make a bupaR eventlog from a dataset
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{pmClass$make_event_data(
   data,
@@ -262,33 +427,86 @@ Unpack a JSON field to make a named vector
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{data}}{The dataset that should be transformed to an eventlog}
+
+\item{\code{cid}}{Column that specifies the ID for the case}
+
+\item{\code{aid}}{Column that specifies the activity of the event}
+
+\item{\code{aiid}}{Column that specifies the activity instance of the event}
+
+\item{\code{tmst}}{Column that specifes the timestamp of the event}
+
+\item{\code{lcid}}{Column that specifies the lifecycle id of the event}
+
+\item{\code{rid}}{Column that specifies the resource of the event}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-NA-get_eventlog_case"></a>}}
 \if{latex}{\out{\hypertarget{method-NA-get_eventlog_case}{}}}
 \subsection{Method \code{get_eventlog_case()}}{
+Get the eventlog of a specific case
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{pmClass$get_eventlog_case(audit_data, case_id, column, option_json)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{audit_data}}{If specified, use this data as audit data, if not specified, use event_data}
+
+\item{\code{case_id}}{Case from which the eventlog must be obtained}
+
+\item{\code{column}}{Obligated field that specifies which column should be mined}
+
+\item{\code{option_json}}{If the field has json names, this is the json to transform these numbers into names}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-NA-make_complete_log"></a>}}
 \if{latex}{\out{\hypertarget{method-NA-make_complete_log}{}}}
 \subsection{Method \code{make_complete_log()}}{
+Get the eventlog of all cases
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{pmClass$make_complete_log(audit_data, column, option_json)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{audit_data}}{If specified, use this data as audit data, if not specified, use event_data}
+
+\item{\code{column}}{Obligated field that specifies which column should be mined}
+
+\item{\code{option_json}}{If the field has json names, this is the json to transform these numbers into names}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-NA-get_first_value_before_edits"></a>}}
 \if{latex}{\out{\hypertarget{method-NA-get_first_value_before_edits}{}}}
 \subsection{Method \code{get_first_value_before_edits()}}{
+For an audit file get the option that was filled in when the case was created
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{pmClass$get_first_value_before_edits(data)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{data}}{Audit datafile for one case}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-unknown-clone"></a>}}

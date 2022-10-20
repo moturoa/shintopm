@@ -1,5 +1,7 @@
 #' R6 Class voor Process Mining applicaties
 #' @importFrom R6 R6Class
+#' @param lock_objects Boolean to say if objects are locked
+#' @param public List of public functions in R6 class
 #' @export
 pmClass <- R6::R6Class(
   lock_objects = FALSE,
@@ -13,7 +15,9 @@ pmClass <- R6::R6Class(
     #' @param pool If TRUE, connects with dbPool
     #' @param sqlite If path to an SQLite file, uses SQLite.
     #' @param form_data If the user uses the shintoforms package this table is used to get the current state
+    #' @param form_data_id Name of column that specifies the ids for cases/registrations in the form_data table
     #' @param form_audit If the user uses the shintoforms package this table is used to get the history
+    #' @param form_audit_id Name of column that specifies the ids for cases/registrations in the audit_data table
     #' @param event_data If the user want to use their own event data
     #' @param event_columns If the user uses own event_data, the columns can be specified here.
     initialize = function(config_file = "conf/config.yml",
@@ -60,6 +64,11 @@ pmClass <- R6::R6Class(
     #----- Generic database methods
 
     #' @description Connect to a database
+    #' @param config_file Path to DB config
+    #' @param what Entry in config for DB connection
+    #' @param schema DB schema
+    #' @param pool If TRUE, connects with dbPool
+    #' @param sqlite If path to an SQLite file, uses SQLite.
     connect_to_database = function(config_file = NULL,
                                    schema = NULL,
                                    what = NULL,
@@ -77,9 +86,9 @@ pmClass <- R6::R6Class(
         self$pool <- pool
 
         if(pool){
-          self$con <- dbPool(RSQLite::SQLite(), dbname = sqlite)
+          self$con <- pool::dbPool(RSQLite::SQLite(), dbname = sqlite)
         } else {
-          self$con <- dbConnect(RSQLite::SQLite(), dbname = sqlite)
+          self$con <- DBI::dbConnect(RSQLite::SQLite(), dbname = sqlite)
         }
 
         self$dbtype <- "sqlite"
@@ -142,7 +151,7 @@ pmClass <- R6::R6Class(
         } else {
           flog.info("dbDisconnect", name = "DBR6")
 
-          dbDisconnect(self$con)
+          DBI::dbDisconnect(self$con)
         }
 
       } else {
@@ -150,7 +159,10 @@ pmClass <- R6::R6Class(
       }
     },
 
-
+    #' @description Add a column to a table
+    #' @param table The table to which the column is added
+    #' @param column the name of the column to be added
+    #' @param type the type of the column to be added
     make_column = function(table, column, type = "varchar"){
 
       if(is.null(self$schema)){
@@ -159,11 +171,13 @@ pmClass <- R6::R6Class(
         qu <- glue::glue("alter table {self$schema}.{table} add column {column} {type}")
       }
 
-      dbExecute(self$con, qu)
+      DBI::dbExecute(self$con, qu)
 
     },
 
-
+    #' @description Function to read a complete table from a database
+    #' @param table The table which must be retrieved
+    #' @param lazy Boolean whether the entire table must retrieved or whether is should be done lazily
     read_table = function(table, lazy = FALSE){
 
       #tictoc::tic(glue("tbl({table})"))
@@ -185,6 +199,9 @@ pmClass <- R6::R6Class(
 
     },
 
+    #' @description Function to add data to a table
+    #' @param table The table to which the data must be added
+    #' @param data data to be added to the data in the table
     append_data = function(table, data){
 
       #flog.info(glue("dbWriteTable({table})"), append = TRUE, name = "DBR6")
@@ -192,7 +209,7 @@ pmClass <- R6::R6Class(
       if(!is.null(self$schema)){
 
         try(
-          dbWriteTable(self$con,
+          DBI::dbWriteTable(self$con,
                        name = DBI::Id(schema = self$schema, table = table),
                        value = data,
                        append = TRUE)
@@ -201,7 +218,7 @@ pmClass <- R6::R6Class(
       } else {
 
         try(
-          dbWriteTable(self$con,
+          DBI::dbWriteTable(self$con,
                        name = table,
                        value = data,
                        append = TRUE)
@@ -212,37 +229,42 @@ pmClass <- R6::R6Class(
 
     },
 
+    #' @description Get the column names from a table
+    #' @param table The table from which the names must be retrieved
     table_columns = function(table){
 
       if(is.null(self$schema)){
-        names(self$query(glue("select * from {table} where false")))
+        names(self$query(glue::glue("select * from {table} where false")))
       } else {
-        names(self$query(glue("select * from {self$schema}.{table} where false")))
+        names(self$query(glue::glue("select * from {self$schema}.{table} where false")))
       }
 
 
     },
 
-    query = function(txt, glue = TRUE, quiet = FALSE){
+    #' @description Function to execute a query
+    #' @param txt The text containing the query
+    #' @param glue Boolean to indicate whether the text contains glue statements
+    query = function(txt, glue = TRUE){
 
       if(glue)txt <- glue::glue(txt)
-      # if(!quiet){
-      #   flog.info(glue("query({txt})"), name = "DBR6")
-      # }
-      #
 
       try(
-        dbGetQuery(self$con, txt)
+        DBI::dbGetQuery(self$con, txt)
       )
 
     },
 
+    #' @description Checks whether a value occurs in a column
+    #' @param table The table which should be checked
+    #' @param column The column that should be checked
+    #' @param value The value which should be checked for
     has_value = function(table, column, value){
 
       if(!is.null(self$schema)){
-        out <- self$query(glue("select {column} from {self$schema}.{table} where {column} = '{value}' limit 1"))
+        out <- self$query(glue::glue("select {column} from {self$schema}.{table} where {column} = '{value}' limit 1"))
       } else {
-        out <- self$query(glue("select {column} from {table} where {column} = '{value}' limit 1"))
+        out <- self$query(glue::glue("select {column} from {table} where {column} = '{value}' limit 1"))
       }
 
       nrow(out) > 0
@@ -251,46 +273,53 @@ pmClass <- R6::R6Class(
 
     # set verwijderd=1 where naam=gekozennaam.
     # replace_value_where("table", 'verwijderd', 'true', 'naam', 'gekozennaam')
+    #' @description Function to dynamically replace values
+    #' @param table The table in which values should be replaced
+    #' @param col_replace The column that should be replaced
+    #' @param val_replace The value that should be replaced
+    #' @param col_compare The column to compare to
+    #' @param val_compare The value to compare to
+    #' @param query_only Boolean indicating if the query should be returned. FALSE means it is also executed
     replace_value_where = function(table, col_replace, val_replace, col_compare, val_compare,
-                                   query_only = FALSE, quiet = FALSE){
+                                   query_only = FALSE){
 
 
       if(!is.null(self$schema)){
         if(is.logical(val_replace) & !is.na(val_replace)){
-          query <- glue("update {self$schema}.{table} set {col_replace} = ?val_replace::boolean where ",
+          query <- glue::glue("update {self$schema}.{table} set {col_replace} = ?val_replace::boolean where ",
                         "{col_compare} = ?val_compare") %>% as.character()
         } else {
-          query <- glue("update {self$schema}.{table} set {col_replace} = ?val_replace where ",
+          query <- glue::glue("update {self$schema}.{table} set {col_replace} = ?val_replace where ",
                         "{col_compare} = ?val_compare") %>% as.character()
         }
 
       } else {
         if(is.logical(val_replace) & !is.na(val_replace)){
-          query <- glue("update {table} set {col_replace} = ?val_replace::boolean where ",
+          query <- glue::glue("update {table} set {col_replace} = ?val_replace::boolean where ",
                         "{col_compare} = ?val_compare") %>% as.character()
         } else {
-          query <- glue("update {table} set {col_replace} = ?val_replace where ",
+          query <- glue::glue("update {table} set {col_replace} = ?val_replace where ",
                         "{col_compare} = ?val_compare") %>% as.character()
         }
 
       }
 
-      query <- sqlInterpolate(DBI::ANSI(),
+      query <- DBI::sqlInterpolate(DBI::ANSI(),
                               query,
                               val_replace = val_replace, val_compare = val_compare)
 
       if(query_only)return(query)
 
-      # if(!quiet){
-      #   flog.info(query, name = "DBR6")
-      # }
-
-      dbExecute(self$con, query)
+      DBI::dbExecute(self$con, query)
 
     },
 
 
     #' @description Make choices (for selectInput) based on values and names
+    #' @param values_from Column to specify where the values must come from
+    #' @param names_from Column to specify where the names must come from
+    #' @param data The dataset from which the values and names come
+    #' @param sort Boolean indicating if the options must be sorted
     make_choices = function(values_from, names_from = values_from, data = NULL, sort = TRUE){
 
       data <- data %>%
@@ -309,6 +338,7 @@ pmClass <- R6::R6Class(
     },
 
     #' @description Unpack a JSON field to make a named vector
+    #' @param x the json field
     choices_from_json = function(x){
 
       val <- self$from_json(x)
@@ -327,12 +357,18 @@ pmClass <- R6::R6Class(
       out
     },
 
+    #' @description Unpack a JSON field to make a named vector
+    #' @param x the json field
+    #' @param ... other arguments
     from_json = function(x, ...){
 
       shintocatman::from_json(x, ...)
 
     },
 
+    #' @description Form a named vector into a JSON field
+    #' @param x the named vector
+    #' @param ... other arguments
     to_json = function(x, ...){
 
       shintocatman::to_json(x, ...)
@@ -343,6 +379,13 @@ pmClass <- R6::R6Class(
 
     ####### Process Mining #####
 
+    #' @description Add an event to the event_data
+    #' @param case_id ID for the case
+    #' @param activity Activity of the event
+    #' @param resource Resource of event, who performed the activity
+    #' @param act_ins Optional instance of the activity
+    #' @param e_time Time of the event
+    #' @param lc Lifecycle phase
     add_event = function(case_id, activity, resource, act_ins = NULL, e_time = NULL, lc = NULL){
 
       if(is.null(act_ins)){
@@ -385,6 +428,8 @@ pmClass <- R6::R6Class(
 
     },
 
+    #' @description Delete an event from the event_data
+    #' @param case_id ID for the case
     delete_events_from_case = function(case_id){
       if(!is.null(self$schema)){
         qu <- glue::glue("DELETE FROM {self$schema}.{self$event_data} WHERE {self$event_columns$case} = '{case_id}'")
@@ -392,10 +437,18 @@ pmClass <- R6::R6Class(
         qu <- glue::glue("DELETE FROM {self$event_data} WHERE {self$event_columns$case} = '{case_id}'")
       }
 
-      dbExecute(self$con, qu)
+      DBI::dbExecute(self$con, qu)
     },
 
 
+    #' @description Make a bupaR eventlog from a dataset
+    #' @param data The dataset that should be transformed to an eventlog
+    #' @param cid Column that specifies the ID for the case
+    #' @param aid Column that specifies the activity of the event
+    #' @param aiid Column that specifies the activity instance of the event
+    #' @param tmst Column that specifes the timestamp of the event
+    #' @param lcid Column that specifies the lifecycle id of the event
+    #' @param rid Column that specifies the resource of the event
     make_event_data = function(data, cid = self$event_columns$case, aid = self$event_columns$activity, aiid = self$event_columns$activity_instance,
                                tmst = self$event_columns$eventtime, lcid = self$event_columns$lifecycle, rid = self$event_columns$resource){
       bupaR::eventlog(data,
@@ -407,6 +460,11 @@ pmClass <- R6::R6Class(
                       resource_id = rid)
     },
 
+    #' @description Get the eventlog of a specific case
+    #' @param audit_data If specified, use this data as audit data, if not specified, use event_data
+    #' @param case_id Case from which the eventlog must be obtained
+    #' @param column Obligated field that specifies which column should be mined
+    #' @param option_json If the field has json names, this is the json to transform these numbers into names
     get_eventlog_case = function(audit_data, case_id, column, option_json){
 
       # TODO: CAN WE USE NEW_VAL? OR SHOULD IT BE GENERIC? --> type, time, etc. allemaal algemene kolommen maken
@@ -417,8 +475,8 @@ pmClass <- R6::R6Class(
 
       if(!is.null(audit_data)){
         event_data <- audit_data %>%
-          filter(registration_id == !!case_id) %>%
-          filter(variable == !!column | type == "C")
+          dplyr::filter(registration_id == !!case_id) %>%
+          dplyr::filter(variable == !!column | type == "C")
 
         event_data$aiid <- replicate(nrow(event_data), uuid::UUIDgenerate())
 
@@ -435,10 +493,10 @@ pmClass <- R6::R6Class(
 
         if(nrow(event_data) == 1 && event_data$type == "C"){
           current_reg_act <- self$read_table(self$form_data, lazy = TRUE) %>%
-            filter(!!sym(self$form_data_id) == case_id) %>%
-            collect() %>%
-            select(!!sym(column)) %>%
-            pull(!!sym(column))
+            dplyr::filter(!!rlang::sym(self$form_data_id) == case_id) %>%
+            dplyr::collect() %>%
+            dplyr::select(!!rlang::sym(column)) %>%
+            dplyr::pull(!!rlang::sym(column))
 
           if(current_reg_act == ""){
             current_reg_act <- NA
@@ -450,8 +508,8 @@ pmClass <- R6::R6Class(
 
           # TODO --> Dit is nu functie, aanpassen? get_first_value_before_edits
           u_events <- event_data %>%
-            filter(type == "U") %>%
-            arrange(time_modified)
+            dplyr::filter(type == "U") %>%
+            dplyr::arrange(time_modified)
 
           first_value <- u_events$old_val[1]
 
@@ -470,8 +528,8 @@ pmClass <- R6::R6Class(
 
       } else if(!is.null(self$event_data)) {
         data <- self$read_table(self$event_data, lazy = TRUE) %>%
-          filter(!!sym(self$event_columns$case) == !!case_id) %>%
-          collect
+          dplyr::filter(!!rlang::sym(self$event_columns$case) == !!case_id) %>%
+          dplyr::collect
 
         event_data <- self$make_event_data(data)
 
@@ -506,6 +564,10 @@ pmClass <- R6::R6Class(
     },
 
 
+    #' @description Get the eventlog of all cases
+    #' @param audit_data If specified, use this data as audit data, if not specified, use event_data
+    #' @param column Obligated field that specifies which column should be mined
+    #' @param option_json If the field has json names, this is the json to transform these numbers into names
     make_complete_log = function(audit_data, column, option_json){
 
       # TODO: CAN WE USE NEW_VAL? OR SHOULD IT BE GENERIC?
@@ -518,31 +580,31 @@ pmClass <- R6::R6Class(
 
       if(!is.null(audit_data)){
         event_data <- audit_data %>%
-          filter(variable == !!column | type == "C")
+          dplyr::filter(variable == !!column | type == "C")
 
         # All registrations that only occur once have only current data, which must be retrieved from the registration table
         one_occurrence <- event_data %>%
-          count(!!sym(self$form_audit_id)) %>%
-          filter(n == 1)
+          dplyr::count(!!rlang::sym(self$form_audit_id)) %>%
+          dplyr::filter(n == 1)
 
         one_occ_reg <- self$read_table(self$form_data) %>%
-          filter(!!sym(self$form_data_id) %in% one_occurrence[[self$form_data_id]]) %>%
-          select(!!sym(self$form_data_id), !!sym(column))
+          dplyr::filter(!!rlang::sym(self$form_data_id) %in% one_occurrence[[self$form_data_id]]) %>%
+          dplyr::select(!!rlang::sym(self$form_data_id), !!rlang::sym(column))
 
         event_data <- event_data %>%
-          left_join(one_occ_reg, by = setNames(self$form_audit_id, self$form_data_id)) %>%
-          mutate(new_val = coalesce(new_val, !!sym(column))) %>%
-          select(-!!sym(column)) %>%
-          mutate(new_val = na_if(new_val, ""))
+          dplyr::left_join(one_occ_reg, by = setNames(self$form_audit_id, self$form_data_id)) %>%
+          dplyr::mutate(new_val = coalesce(new_val, !!rlang::sym(column))) %>%
+          dplyr::select(-!!rlang::sym(column)) %>%
+          dplyr::mutate(new_val = na_if(new_val, ""))
 
         # All registrations that have multiple occurrences should get the old_val from the first U-event as value in the new_val in the C-event
         mult_occ_reg <- event_data %>%
-          filter(!(!!sym(self$form_audit_id) %in% one_occurrence[[self$form_data_id]]))
+          dplyr::filter(!(!!rlang::sym(self$form_audit_id) %in% one_occurrence[[self$form_data_id]]))
 
         sapply(unique(mult_occ_reg$registration_id), function(x){
 
           dt <- mult_occ_reg %>%
-            filter(!!sym(self$form_audit_id) == x)
+            dplyr::filter(!!rlang::sym(self$form_audit_id) == x)
 
           res <- self$get_first_value_before_edits(dt)
 
@@ -593,11 +655,13 @@ pmClass <- R6::R6Class(
 
     },
 
+    #' @description For an audit file get the option that was filled in when the case was created
+    #' @param data Audit datafile for one case
     get_first_value_before_edits = function(data){
 
       u_events <- data %>%
-        filter(type == "U") %>%
-        arrange(time_modified)
+        dplyr::filter(type == "U") %>%
+        dplyr::arrange(time_modified)
 
       first_value <- u_events$old_val[1]
 

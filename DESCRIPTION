@@ -5,7 +5,7 @@ Version: 0.1.0
 Author: Wesley Brants
 Maintainer: Wesley Brants <welsey@shintolabs.nl>
 Description: Processing event data and visualizing it. Can be done with homemade event data, but also with data specific from shintoforms
-Depends: dplyr, tidyr, rlang
+Depends: bupaR, config, DBI, DiagrammeR, dplyr, edeaR, glue, pool, processanimateR, processmapR, R6, RSQLite, rlang, shintocatman, shiny, softui, tidyr, uuid
 License: CC0
 Encoding: UTF-8
 LazyData: true

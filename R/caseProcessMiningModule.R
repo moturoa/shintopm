@@ -5,11 +5,11 @@
 
 caseProcessMiningUI <- function(id){
 
-  ns <- NS(id)
+  ns <- shiny::NS(id)
 
   softui::fluid_row(
-    column(12,
-           uiOutput(ns("trace_case_id"))
+    shiny::column(12,
+                  shiny::uiOutput(ns("trace_case_id"))
     )
   )
 
@@ -34,54 +34,51 @@ caseProcessMiningModule <- function(input, output, session, .pm, audit_data = re
 
     event_log <- event_log()
 
-    req(event_log)
+    shiny::req(event_log)
 
     softui::fluid_row(
-      column(12,
-             softui::box(title = glue("Proces van {case_id()}"), width = 12,
-                         softui::fluid_row(
-                           column(6,
-                                  tags$h3("Stappenspoor"),
-                                  plotOutput(session$ns("trace_explorer_plot"))
-                           ),
-                           column(6,
-                                  tags$h3("Stappenkaart"),
-                                  DiagrammeR::grVizOutput(session$ns("process_map_plot"))
-
-                           )
-                         ),
-                         softui::fluid_row(
-                           column(6,
-                                  tags$h3("Actoren"),
-                                  DiagrammeR::grVizOutput(session$ns("resource_map_plot"))
-
-                           ),
-                           column(6,
-                                  tags$h3("Overdracht-matrix"),
-                                  plotOutput(session$ns("process_matrix_plot"))
-                           )
-                         ),
-                         softui::fluid_row(
-                           column(6,
-                                  tags$h3("Doorlooptijd"),
-                                  uiOutput(session$ns("througput_time_ui"))
-
-                           ),
-                           column(6,
-                                  column(6,
-                                         tags$h3("Tijdskaart"),
-                                         DiagrammeR::grVizOutput(session$ns("process_time_plot"), width = "200%", height = "200px")
+      shiny::column(12,
+                    softui::box(title = glue::glue("Proces van {case_id()}"), width = 12,
+                                softui::fluid_row(
+                                  shiny::column(6,
+                                                shiny::tags$h3("Stappenspoor"),
+                                                shiny::plotOutput(session$ns("trace_explorer_plot"))
+                                  ),
+                                  shiny::column(6,
+                                                shiny::tags$h3("Stappenkaart"),
+                                                DiagrammeR::grVizOutput(session$ns("process_map_plot"))
 
                                   )
-                           )
-                         )
-             )
+                                ),
+                                softui::fluid_row(
+                                  shiny::column(6,
+                                                shiny::tags$h3("Actoren"),
+                                                DiagrammeR::grVizOutput(session$ns("resource_map_plot"))
+
+                                  ),
+                                  shiny::column(6,
+                                                shiny::tags$h3("Overdracht-matrix"),
+                                                shiny::plotOutput(session$ns("process_matrix_plot"))
+                                  )
+                                ),
+                                softui::fluid_row(
+                                  shiny::column(6,
+                                                shiny::tags$h3("Doorlooptijd"),
+                                                shiny::uiOutput(session$ns("througput_time_ui"))
+
+                                  ),
+                                  shiny::column(6,
+                                                shiny::tags$h3("Tijdskaart"),
+                                                DiagrammeR::grVizOutput(session$ns("process_time_plot"))
+                                  )
+                                )
+                    )
       )
     )
 
   })
 
-  output$trace_explorer_plot <- renderPlot({
+  output$trace_explorer_plot <- shiny::renderPlot({
 
     event_log() %>% processmapR::trace_explorer() %>% plot()
 
@@ -94,7 +91,7 @@ caseProcessMiningModule <- function(input, output, session, .pm, audit_data = re
   })
 
 
-  output$process_matrix_plot <- renderPlot({
+  output$process_matrix_plot <- shiny::renderPlot({
 
     event_log() %>% processmapR::precedence_matrix() %>% plot()
 
@@ -106,7 +103,7 @@ caseProcessMiningModule <- function(input, output, session, .pm, audit_data = re
 
   })
 
-  output$througput_time_ui <- renderUI({
+  output$througput_time_ui <- shiny::renderUI({
     td <- event_log() %>% edeaR::throughput_time(level = "case", units = "hours")
 
     softui::value_box(round(td$throughput_time, 1), title = "Doorlooptijd", icon = bsicon("hourglass-split"), width = "100%")
