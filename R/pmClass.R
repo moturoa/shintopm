@@ -210,18 +210,18 @@ pmClass <- R6::R6Class(
 
         try(
           DBI::dbWriteTable(self$con,
-                       name = DBI::Id(schema = self$schema, table = table),
-                       value = data,
-                       append = TRUE)
+                            name = DBI::Id(schema = self$schema, table = table),
+                            value = data,
+                            append = TRUE)
         )
 
       } else {
 
         try(
           DBI::dbWriteTable(self$con,
-                       name = table,
-                       value = data,
-                       append = TRUE)
+                            name = table,
+                            value = data,
+                            append = TRUE)
         )
 
       }
@@ -287,26 +287,26 @@ pmClass <- R6::R6Class(
       if(!is.null(self$schema)){
         if(is.logical(val_replace) & !is.na(val_replace)){
           query <- glue::glue("update {self$schema}.{table} set {col_replace} = ?val_replace::boolean where ",
-                        "{col_compare} = ?val_compare") %>% as.character()
+                              "{col_compare} = ?val_compare") %>% as.character()
         } else {
           query <- glue::glue("update {self$schema}.{table} set {col_replace} = ?val_replace where ",
-                        "{col_compare} = ?val_compare") %>% as.character()
+                              "{col_compare} = ?val_compare") %>% as.character()
         }
 
       } else {
         if(is.logical(val_replace) & !is.na(val_replace)){
           query <- glue::glue("update {table} set {col_replace} = ?val_replace::boolean where ",
-                        "{col_compare} = ?val_compare") %>% as.character()
+                              "{col_compare} = ?val_compare") %>% as.character()
         } else {
           query <- glue::glue("update {table} set {col_replace} = ?val_replace where ",
-                        "{col_compare} = ?val_compare") %>% as.character()
+                              "{col_compare} = ?val_compare") %>% as.character()
         }
 
       }
 
       query <- DBI::sqlInterpolate(DBI::ANSI(),
-                              query,
-                              val_replace = val_replace, val_compare = val_compare)
+                                   query,
+                                   val_replace = val_replace, val_compare = val_compare)
 
       if(query_only)return(query)
 
@@ -498,8 +498,10 @@ pmClass <- R6::R6Class(
             dplyr::select(!!rlang::sym(column)) %>%
             dplyr::pull(!!rlang::sym(column))
 
-          if(current_reg_act == ""){
-            current_reg_act <- NA
+          if(!is.na(current_reg_act)){
+            if(current_reg_act == ""){
+              current_reg_act <- NA
+            }
           }
 
           event_data$new_val <- current_reg_act
