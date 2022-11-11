@@ -1,5 +1,6 @@
 #' R6 Class voor Process Mining applicaties
 #' @importFrom R6 R6Class
+#' @importFrom DBI dbIsValid
 #' @param lock_objects Boolean to say if objects are locked
 #' @param public List of public functions in R6 class
 #' @export
@@ -14,6 +15,7 @@ pmClass <- R6::R6Class(
     #' @param schema DB schema
     #' @param pool If TRUE, connects with dbPool
     #' @param sqlite If path to an SQLite file, uses SQLite.
+    #' @param db_connection A valid [DBI::dbConnection()] object; for postgres connections only.
     #' @param form_data If the user uses the shintoforms package this table is used to get the current state
     #' @param form_data_id Name of column that specifies the ids for cases/registrations in the form_data table
     #' @param form_audit If the user uses the shintoforms package this table is used to get the history
@@ -25,6 +27,7 @@ pmClass <- R6::R6Class(
                           schema = NULL,
                           pool = TRUE,
                           sqlite = NULL,
+                          db_connection = NULL,
                           form_data = NULL,
                           form_data_id = NULL,
                           form_audit = NULL, # NIET OVERBODIG; Iets maken dat je ook algemeen vanuit hier kan maken zonder preprocessed form_audits mee te geven.
@@ -39,8 +42,21 @@ pmClass <- R6::R6Class(
                             resource = "resource")
     ){
 
-      self$connect_to_database(config_file, schema, what, pool, sqlite)
-
+      if(is.null(db_connection)){
+        self$connect_to_database(config_file, schema, what, pool, sqlite)  
+      } else {
+        if(!DBI::dbIsValid(db_connection)){
+          stop("Please pass a valid dbConnection object")
+        }
+        
+        self$con <- db_connection
+        self$schema <- schema
+        self$pool <- pool  #unused with passed db_connection?
+        self$dbtype <- "postgres"
+        
+      }
+      
+      
       self$form_data <- form_data
       self$form_data_id <- form_data_id
 
