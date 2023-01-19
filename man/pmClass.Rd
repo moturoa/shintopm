@@ -46,6 +46,7 @@ Make new process mining application object.
   schema = NULL,
   pool = TRUE,
   sqlite = NULL,
+  db_connection = NULL,
   form_data = NULL,
   form_data_id = NULL,
   form_audit = NULL,
@@ -69,6 +70,8 @@ Make new process mining application object.
 \item{\code{pool}}{If TRUE, connects with dbPool}
 
 \item{\code{sqlite}}{If path to an SQLite file, uses SQLite.}
+
+\item{\code{db_connection}}{A valid \code{\link[DBI:dbConnection]{DBI::dbConnection()}} object; for postgres connections only.}
 
 \item{\code{form_data}}{If the user uses the shintoforms package this table is used to get the current state}
 
