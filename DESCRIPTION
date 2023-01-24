@@ -1,7 +1,7 @@
 Package: shintopm
 Type: Package
 Title: Process Mining in general and from shintoforms
-Version: 0.3.0
+Version: 0.3.1
 Author: Wesley Brants
 Maintainer: Wesley Brants <welsey@shintolabs.nl>
 Description: Processing event data and visualizing it. Can be done with homemade event data, but also with data specific from shintoforms

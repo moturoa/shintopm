@@ -590,8 +590,6 @@ pmClass <- R6::R6Class(
 
       # TODO: CAN WE USE NEW_VAL? OR SHOULD IT BE GENERIC?
 
-
-
       if(is.null(column)){
         stop("A column MUST be defined in order to execute process mining")
       }
@@ -683,7 +681,7 @@ pmClass <- R6::R6Class(
 
       first_value <- u_events$old_val[1]
 
-      if(first_value == ""){
+      if(!is.na(first_value) && first_value == ""){
         first_value <- NA
       }
 
