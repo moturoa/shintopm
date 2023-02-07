@@ -43,20 +43,20 @@ pmClass <- R6::R6Class(
     ){
 
       if(is.null(db_connection)){
-        self$connect_to_database(config_file, schema, what, pool, sqlite)  
+        self$connect_to_database(config_file, schema, what, pool, sqlite)
       } else {
         if(!DBI::dbIsValid(db_connection)){
           stop("Please pass a valid dbConnection object")
         }
-        
+
         self$con <- db_connection
         self$schema <- schema
         self$pool <- pool  #unused with passed db_connection?
         self$dbtype <- "postgres"
-        
+
       }
-      
-      
+
+
       self$form_data <- form_data
       self$form_data_id <- form_data_id
 
@@ -506,7 +506,7 @@ pmClass <- R6::R6Class(
 
           first_value <- u_events$old_val[1]
 
-          if(first_value == ""){
+          if(!is.na(first_value) && first_value == ""){
             first_value <- NA
           }
 
@@ -564,8 +564,6 @@ pmClass <- R6::R6Class(
     make_complete_log = function(audit_data, column, option_json){
 
       # TODO: CAN WE USE NEW_VAL? OR SHOULD IT BE GENERIC?
-
-
 
       if(is.null(column)){
         stop("A column MUST be defined in order to execute process mining")
@@ -658,7 +656,7 @@ pmClass <- R6::R6Class(
 
       first_value <- u_events$old_val[1]
 
-      if(first_value == ""){
+      if(!is.na(first_value) && first_value == ""){
         first_value <- NA
       }
 

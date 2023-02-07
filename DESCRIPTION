@@ -1,7 +1,7 @@
 Package: shintopm
 Type: Package
 Title: Process Mining in general and from shintoforms
-Version: 0.2.0
+Version: 0.3.1
 Author: Wesley Brants
 Maintainer: Wesley Brants <welsey@shintolabs.nl>
 Description: Processing event data and visualizing it. Can be done with homemade event data, but also with data specific from shintoforms
@@ -9,5 +9,5 @@ Depends: bupaR, config, DBI, DiagrammeR, dplyr, edeaR, glue, pool, processanimat
 License: CC0
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Roxygen: list(markdown = TRUE)
