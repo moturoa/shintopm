@@ -115,38 +115,13 @@ pmClass <- R6::R6Class(
         self$dbname <- what
         self$pool <- pool
 
-        cf <- config::get(what, file = config_file)
-
-        print("----CONNECTING TO----")
-        print(cf$dbhost)
-
-        self$dbuser <- cf$dbuser
-
-        if(pool){
-          flog.info("pool::dbPool", name = "DBR6")
-          response <- try(pool::dbPool(RPostgres::Postgres(),
-                                       dbname = cf$dbname,
-                                       host = cf$dbhost,
-                                       port = cf$dbport,
-                                       user = cf$dbuser,
-                                       password = cf$dbpassword,
-                                       minSize = 1,
-                                       maxSize = 25,
-                                       idleTimeout = 60*60*1000))
-        } else {
-          flog.info("DBI::dbConnect", name = "DBR6")
-          response <- try(DBI::dbConnect(RPostgres::Postgres(),
-                                         dbname = cf$dbname,
-                                         host = cf$dbhost,
-                                         port = cf$dbport,
-                                         user = cf$dbuser,
-                                         password = cf$dbpassword))
-        }
-
+        response <- try({
+          shintodb::connect(what, pool = pool)
+        })
+        
         if(!inherits(response, "try-error")){
           self$con <- response
         }
-
 
         self$dbtype <- "postgres"
 
