@@ -492,7 +492,7 @@ pmClass <- R6::R6Class(
       if(!is.null(audit_data)){
         event_data <- audit_data %>%
           dplyr::filter(registration_id == !!case_id) %>%
-          dplyr::filter(variable == !!column | type == "C")
+          dplyr::filter(variable == !!column | type == "Aanmaak")
 
         event_data$aiid <- replicate(nrow(event_data), uuid::UUIDgenerate())
 
@@ -507,7 +507,7 @@ pmClass <- R6::R6Class(
         # Hence, in this case we should fetch this from the self$formdata
 
 
-        if(nrow(event_data) == 1 && event_data$type == "C"){
+        if(nrow(event_data) == 1 && event_data$type == "Aanmaak"){
           current_reg_act <- self$read_table(self$form_data, lazy = TRUE) %>%
             dplyr::filter(!!rlang::sym(self$form_data_id) == case_id) %>%
             dplyr::collect() %>%
@@ -526,7 +526,7 @@ pmClass <- R6::R6Class(
 
           # TODO --> Dit is nu functie, aanpassen? get_first_value_before_edits
           u_events <- event_data %>%
-            dplyr::filter(type == "U") %>%
+            dplyr::filter(type == "Wijziging") %>%
             dplyr::arrange(time_modified)
 
           first_value <- u_events$old_val[1]
@@ -535,7 +535,7 @@ pmClass <- R6::R6Class(
             first_value <- NA
           }
 
-          event_data[event_data$type == "C",]$new_val <- first_value
+          event_data[event_data$type == "Aanmaak",]$new_val <- first_value
 
         }
 
@@ -596,7 +596,7 @@ pmClass <- R6::R6Class(
 
       if(!is.null(audit_data)){
         event_data <- audit_data %>%
-          dplyr::filter(variable == !!column | type == "C")
+          dplyr::filter(variable == !!column | type == "Aanmaak")
 
         # All registrations that only occur once have only current data, which must be retrieved from the registration table
         one_occurrence <- event_data %>%
@@ -624,7 +624,7 @@ pmClass <- R6::R6Class(
 
           res <- self$get_first_value_before_edits(dt)
 
-          event_data[event_data$type == "C" & event_data[[self$form_audit_id]] == x,]$new_val <<- res
+          event_data[event_data$type == "Aanmaak" & event_data[[self$form_audit_id]] == x,]$new_val <<- res
 
 
         })
@@ -676,7 +676,7 @@ pmClass <- R6::R6Class(
     get_first_value_before_edits = function(data){
 
       u_events <- data %>%
-        dplyr::filter(type == "U") %>%
+        dplyr::filter(type == "Wijziging") %>%
         dplyr::arrange(time_modified)
 
       first_value <- u_events$old_val[1]
